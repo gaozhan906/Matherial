@@ -1,0 +1,319 @@
+DRAFT KONSEP APLIKASI
+
+Universal Game Converter & Crafting Calculator
+
+1. Tujuan Aplikasi
+
+Membuat aplikasi Android offline yang menyediakan sistem database universal untuk berbagai game.
+
+Aplikasi memungkinkan pengguna membuat dan mengelola database game secara manual, meliputi:
+
+- Database Item.
+- Database Tag.
+- Database Konversi.
+- Database Resep Crafting.
+- Sistem nilai dan harga item.
+- Mesin perhitungan konversi dan crafting bertingkat.
+
+Aplikasi tidak boleh bergantung pada data game tertentu. Seluruh informasi game dibuat dan dikelola melalui antarmuka aplikasi tanpa mengubah kode sumber.
+
+---
+
+2. Struktur Database
+
+Setiap game memiliki profil database tersendiri agar seluruh datanya terpisah.
+
+Setiap profil memiliki empat komponen utama.
+
+A. Database Item
+
+Digunakan untuk menyimpan seluruh item dalam game.
+
+Atribut item:
+
+- ID Item: identitas unik.
+- Nama Item.
+- Tag: satu item dapat memiliki banyak tag.
+- Satuan.
+- Deskripsi (opsional).
+- Nilai Manual (opsional).
+- Status aktif atau nonaktif.
+
+Sistem Tag
+
+Tag digunakan untuk mengelompokkan item secara fleksibel tanpa membatasi item pada satu kategori saja.
+
+Contoh:
+
+Item: Acacia
+
+Tag:
+
+- Resource
+- Wood
+- Crafting Material
+- Tradeable
+
+Item dapat memiliki satu, beberapa, atau bahkan tidak memiliki tag.
+
+Pengguna dapat membuat, mengedit, dan menghapus tag sendiri.
+
+Satu tag dapat digunakan oleh banyak item.
+
+Tag hanya berfungsi sebagai klasifikasi dan pencarian, bukan sebagai penentu otomatis fungsi item.
+
+Nilai Manual
+
+Setiap item dapat diberikan nilai numerik secara manual.
+
+Contoh:
+
+Item| Nilai Manual
+Gold| 10.000
+Silver| 100
+Copper| 1
+Resin| 3.400
+
+Nilai ini dapat digunakan untuk perhitungan harga, konversi, dan biaya resep.
+
+Nilai manual harus memiliki konteks atau satuan nilai yang jelas agar tidak terjadi pencampuran nilai yang berbeda.
+
+B. Database Konversi
+
+Digunakan untuk membuat hubungan nilai antara item atau satuan.
+
+Atribut konversi:
+
+- ID Konversi.
+- Item Asal.
+- Item Tujuan.
+- Rasio Konversi.
+- Keterangan (opsional).
+
+Contoh hubungan:
+
+- 1 Gold = 100 Silver.
+- 1 Silver = 100 Copper.
+- 1 Resin = 34 Silver.
+
+Konversi Bertingkat wajib didukung.
+
+Sistem harus dapat menelusuri beberapa hubungan konversi untuk mendapatkan hasil akhir.
+
+Contoh:
+
+1 Gold = 100 Silver.
+
+1 Silver = 100 Copper.
+
+Maka:
+
+1 Gold = 10.000 Copper.
+
+Pengguna tidak perlu membuat hubungan langsung antara Gold dan Copper.
+
+Ketentuan:
+
+- Mendukung konversi dua arah jika secara matematis memungkinkan.
+- Mendukung banyak tingkat hubungan konversi.
+- Menghitung hasil melalui jalur konversi yang tersedia.
+- Mendeteksi hubungan yang saling bertentangan.
+- Mencegah perhitungan ambigu apabila terdapat beberapa jalur dengan hasil berbeda.
+- Menampilkan jalur konversi yang digunakan agar hasil dapat diperiksa.
+
+C. Database Resep Crafting
+
+Digunakan untuk menyimpan resep pembuatan item.
+
+Atribut resep:
+
+- ID Resep.
+- Nama Resep.
+- Item Hasil.
+- Jumlah Hasil.
+- Daftar Bahan.
+- Jumlah setiap bahan.
+- Keterangan (opsional).
+
+Satu resep dapat memiliki banyak bahan.
+
+Satu item dapat digunakan dalam banyak resep.
+
+Satu item juga boleh memiliki beberapa alternatif resep untuk menghasilkan item yang sama.
+
+Semua resep dibuat dan dikelola secara manual melalui aplikasi.
+
+Resep Bertingkat wajib didukung.
+
+Contoh:
+
+Resep A menghasilkan Item A dan membutuhkan Item B × 2.
+
+Item B dapat dibuat melalui Resep B yang membutuhkan:
+
+- Item C × 5.
+- Item D × 3.
+
+Jika pengguna ingin membuat Item A × 4, sistem harus dapat menelusuri resep turunannya dan menghitung:
+
+- Item B × 8.
+- Item C × 40.
+- Item D × 24.
+
+Sistem harus mendukung:
+
+- Penelusuran resep beberapa tingkat.
+- Beberapa alternatif resep untuk satu item.
+- Tampilan pohon atau hierarki resep.
+- Perhitungan kebutuhan bahan akhir.
+- Deteksi siklus resep untuk mencegah perhitungan tanpa akhir.
+
+D. Database Nilai
+
+Nilai item dapat berasal dari dua sumber:
+
+1. Nilai Manual: ditentukan pengguna.
+2. Nilai Hasil Konversi: dihitung melalui hubungan konversi.
+
+Nilai dapat digunakan oleh mesin perhitungan untuk menentukan biaya bahan dan harga hasil crafting.
+
+---
+
+3. Hubungan Antar-Database
+
+Seluruh komponen harus saling terhubung menggunakan ID unik.
+
+- Item menjadi pusat identitas seluruh data.
+- Tag terhubung ke item melalui relasi banyak-ke-banyak.
+- Konversi menggunakan ID item sebagai asal dan tujuan.
+- Resep menggunakan ID item sebagai bahan dan hasil.
+- Nilai item digunakan oleh mesin perhitungan konversi dan crafting.
+
+Tidak boleh ada duplikasi identitas item hanya karena item digunakan dalam banyak resep atau konversi.
+
+---
+
+4. Sistem Nilai dan Harga
+
+Mesin perhitungan harus mampu:
+
+- Menggunakan nilai manual item.
+- Menghitung nilai melalui konversi bertingkat.
+- Menghitung total biaya seluruh bahan resep.
+- Menghitung nilai per unit hasil crafting.
+- Menghitung nilai bahan dari resep bertingkat.
+- Membandingkan biaya crafting dengan nilai atau harga beli.
+
+Contoh:
+
+Resep membutuhkan:
+
+- Item A × 5, nilai satuan 100.
+- Item B × 2, nilai satuan 250.
+
+Total nilai bahan:
+
+(5 × 100) + (2 × 250) = 1.000.
+
+Sistem harus menyediakan pilihan sumber nilai yang digunakan apabila nilai manual dan nilai hasil konversi sama-sama tersedia.
+
+Nilai yang belum diketahui tidak boleh otomatis dianggap nol.
+
+Sistem juga harus memperhitungkan jumlah hasil resep. Jika satu resep menghasilkan beberapa item sekaligus, biaya per unit harus dihitung berdasarkan jumlah hasil tersebut.
+
+---
+
+5. Mesin Perhitungan Universal
+
+Mesin perhitungan merupakan inti aplikasi dan harus terpisah dari data game.
+
+Terdapat dua kemampuan utama:
+
+A. Conversion Engine
+
+- Menghitung konversi langsung.
+- Menghitung konversi bertingkat.
+- Menelusuri jalur konversi.
+- Memeriksa konflik rasio.
+- Menghitung nilai item berdasarkan sumber nilai yang dipilih.
+
+B. Crafting Engine
+
+- Menghitung jumlah bahan berdasarkan target hasil.
+- Menghitung resep bertingkat.
+- Menelusuri alternatif resep.
+- Menghitung total kebutuhan bahan dasar.
+- Menghitung total biaya crafting.
+- Menghitung biaya per unit hasil.
+- Menampilkan rincian setiap tingkat resep.
+
+Kedua mesin harus dapat menggunakan database item dan nilai yang sama.
+
+---
+
+6. Antarmuka Pengelolaan Data
+
+Seluruh data dapat dikelola secara manual melalui aplikasi.
+
+Fitur pengelolaan:
+
+- Tambah, edit, dan hapus item.
+- Tambah, edit, dan hapus tag.
+- Tambah, edit, dan hapus konversi.
+- Tambah, edit, dan hapus resep.
+- Menentukan nilai manual item.
+- Mencari item berdasarkan nama atau tag.
+- Memilih sumber nilai untuk perhitungan.
+- Melihat hubungan konversi.
+- Melihat hierarki resep.
+
+Penghapusan data yang masih memiliki relasi harus ditangani dengan aman. Aplikasi harus memperlihatkan relasi yang terdampak sebelum mengizinkan penghapusan.
+
+---
+
+7. Penyimpanan dan Pengelolaan Database
+
+Aplikasi harus:
+
+- Berjalan sepenuhnya secara offline.
+- Menyimpan data secara lokal.
+- Memisahkan data berdasarkan profil game.
+- Mendukung ekspor dan impor database.
+- Menggunakan format JSON untuk pertukaran dan pencadangan data.
+- Memvalidasi data saat impor.
+- Mempertahankan ID dan seluruh relasi database.
+
+---
+
+8. Prinsip Implementasi
+
+1. Tidak menanamkan data item, tag, konversi, atau resep game tertentu dalam kode sumber.
+2. Semua data dibuat melalui aplikasi atau proses impor.
+3. Sistem tag harus mendukung banyak tag untuk satu item.
+4. Konversi bertingkat wajib didukung.
+5. Resep crafting bertingkat wajib didukung.
+6. Mesin perhitungan harus bersifat universal.
+7. Semua hubungan menggunakan ID yang konsisten.
+8. Perubahan database harus memengaruhi hasil perhitungan terkait.
+9. Aplikasi harus sederhana, ringan, dan efisien.
+10. Tidak perlu integrasi API game, inventaris otomatis, atau sinkronisasi server pada tahap awal.
+
+---
+
+9. Prioritas Pengembangan
+
+Urutan prioritas:
+
+1. Sistem Profil Game.
+2. Database Item dan Tag.
+3. Database Konversi.
+4. Mesin Konversi Bertingkat.
+5. Database Resep Crafting.
+6. Mesin Resep Bertingkat.
+7. Sistem Nilai dan Harga.
+8. Antarmuka pengelolaan data.
+9. Impor dan Ekspor Database.
+
+Jangan mengembangkan fitur tambahan sebelum sistem database dan kedua mesin perhitungan utama berjalan dengan benar.
+
+Target akhir: Satu aplikasi universal yang memungkinkan pengguna membuat database game sendiri, menghubungkan item melalui sistem konversi, membuat resep crafting bertingkat, dan menghitung nilai maupun kebutuhan bahan tanpa harus mengubah kode sumber aplikasi.
